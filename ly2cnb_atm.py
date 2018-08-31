@@ -821,6 +821,21 @@ def outputRanking(in_ws, in_conversation_id, in_userid):
     sendUserText(in_ws, in_conversation_id, in_userid, playRankingWithName)
     sendUserText(in_ws, in_conversation_id, in_userid, rateRankingWithName)
 
+def bancor_inconnector_outtoken(inconnector, remainConnector, CW, outtoken_total):
+    return (pow(1 + inconnector/remainConnector, CW) - 1) * outtoken_total
+
+def bancor_intoken_outconnector(intoken, remainConnector, CW, outtoken_total):
+    return remainConnector * (pow(1.0 + intoken/outtoken_total, 1/CW) - 1)
+
+CNB_Total = 10 * 1000 * 1000 * 1000 * 1000
+CW_PRS_CNB = 0.0037
+
+def bancor_inprs_outcnb(inPRS, remainPRSBeforePay, CW):
+    return bancor_inconnector_outtoken(inPRS, remainPRSBeforePay, CW, CNB_Total)
+
+def bancor_incnb_outprs(inCNB, remainPRS, CW):
+    return bancor_intoken_outconnector(inCNB, remainPRS, CW, CNB_Total)
+
 def on_message(ws, message):
     global bonusAssetID
     global bonusUnitText
@@ -919,11 +934,13 @@ def on_message(ws, message):
                         remainPRS = float(remainCNB_PRS["PRS"])
                         paidCNB = float(asset_amount)
 
-                        print("CNB in " + asset_amount)
-                        print("remainCNB " + remainCNB_PRS["CNB"])
-                        print("remainPRS " + remainCNB_PRS["PRS"])
-                        toSendPRS = remainPRS * (pow(1.0 + paidCNB/(10.0 * 1000 * 1000 * 1000 * 1000), 1/0.0037) - 1)
+                        toSendPRS = bancor_incnb_outprs(paidCNB, remainPRS, CW_PRS_CNB)
                         if toSendPRS < remainPRS:
+                            print("remainCNB " + remainCNB_PRS["CNB"])
+                            print("remainPRS " + remainCNB_PRS["PRS"])
+                            print("paidCNB " + str(paidCNB))
+                            print("toSendPRS " + str(toSendPRS))
+
                             if transferTo(mixin_api_robot, myConfig, userid, mixin_asset_list.PRS_ASSET_ID ,str(toSendPRS),"rich"):
                                 totalCNBBuyBack = totalCNBBuyBack + 1
                                 recordCNBSeller(userid)
@@ -943,15 +960,15 @@ def on_message(ws, message):
                     remainCNB_PRS = listCNBPRSAssets(mixin_api_robot, myConfig)
                     remainCNB = float(remainCNB_PRS["CNB"])
                     remainPRS = float(remainCNB_PRS["PRS"])
-                    print("PRS in " + asset_amount)
-                    print("remainCNB " + remainCNB_PRS["CNB"])
-                    print("remainPRS " + remainCNB_PRS["PRS"])
-
                     paidPRS = float(asset_amount)
                     remainPRSBeforePay = remainPRS - paidPRS
-                    toSendCNB = (pow(1 + paidPRS/remainPRSBeforePay, 0.0037) - 1) * 10 * 1000 * 1000 * 1000 * 1000
+                    toSendCNB = bancor_inprs_outcnb(paidPRS, remainPRSBeforePay,CW_PRS_CNB)
                     if toSendCNB < remainCNB:
-                        print("tosend")
+                        print("remainCNB " + remainCNB_PRS["CNB"])
+                        print("remainPRS " + remainCNB_PRS["PRS"])
+                        print("paidPRS" + str(paidPRS))
+                        print("toSendCNB " + str(toSendCNB))
+
                         if transferTo(mixin_api_robot, myConfig, userid, mixin_asset_list.CNB_ASSET_ID,str(toSendCNB),"rich"):
                             recordCNBBuyer(userid)
                             sendUserGameEntrance(ws, myConfig, data['conversation_id'], userid, str(10 * float(PER_PRS)).encode('utf-8') + u"PRS兑换".encode('utf-8') + u"吹牛币".encode('utf-8'),mixin_asset_list.PRS_ASSET_ID,  float(PER_PRS) * 10)
@@ -1100,7 +1117,11 @@ def on_message(ws, message):
             if 'cs' == realData.lower():
                 outputMultiBattle(ws, myConfig, ConversationId, data['user_id'], battleAssetID, "", battleAmount)
                 return
-
+            if 'depth' == realData.lower():
+                sendUserText(ws, ConversationId, data['user_id'], str(len(latestBuyers)) + " buyers")
+                sendUserText(ws, ConversationId, data['user_id'], str(sorted(latestBuyers.values())) + " buyer")
+                sendUserText(ws, ConversationId, data['user_id'], str(len(latestSellers)) + " seller")
+                sendUserText(ws, ConversationId, data['user_id'], str(sorted(latestSellers.values())) + " seller")
 
             outputIntroduction(ws, ConversationId, data['user_id'])
             outExchange(ws, myConfig, ConversationId, data['user_id'])
@@ -1136,14 +1157,6 @@ def on_message(ws, message):
 
                 if 'player' in realData:
                     sendUserText(ws, ConversationId, data['user_id'], str(len(latestPlayersStatus)) + "players")
-                if 'buyer' in realData:
-                    sendUserText(ws, ConversationId, data['user_id'], str(len(latestBuyers)) + " buyers")
-                    sendUserText(ws, ConversationId, data['user_id'], str(sorted(latestBuyers.values())) + " buyer")
-
-                if 'seller' in realData:
-                    sendUserText(ws, ConversationId, data['user_id'], str(len(latestSellers)) + " seller")
-                    sendUserText(ws, ConversationId, data['user_id'], str(sorted(latestSellers.values())) + " seller")
-
                 if 'txprs' in realData.lower():
                     toAnalyzeText = realData.lower()
                     endIndex = toAnalyzeText.index("txprs") + len("txprs")
