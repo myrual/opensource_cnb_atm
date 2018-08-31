@@ -934,7 +934,7 @@ def on_message(ws, message):
                         remainPRS = float(remainCNB_PRS["PRS"])
                         paidCNB = float(asset_amount)
 
-                        toSendPRS = bancor_incnb_outprs(paidCNB, remainPRS, CW_PRS_CNB)
+                        toSendPRS = bancor_incnb_outprs(paidCNB, remainPRS, CW_PRS_CNB)* 0.999
                         if toSendPRS < remainPRS:
                             print("remainCNB " + remainCNB_PRS["CNB"])
                             print("remainPRS " + remainCNB_PRS["PRS"])
@@ -962,7 +962,7 @@ def on_message(ws, message):
                     remainPRS = float(remainCNB_PRS["PRS"])
                     paidPRS = float(asset_amount)
                     remainPRSBeforePay = remainPRS - paidPRS
-                    toSendCNB = bancor_inprs_outcnb(paidPRS, remainPRSBeforePay,CW_PRS_CNB)
+                    toSendCNB = bancor_inprs_outcnb(paidPRS, remainPRSBeforePay,CW_PRS_CNB) * 0.999
                     if toSendCNB < remainCNB:
                         print("remainCNB " + remainCNB_PRS["CNB"])
                         print("remainPRS " + remainCNB_PRS["PRS"])
