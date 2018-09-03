@@ -852,6 +852,7 @@ def on_message(ws, message):
     global battleAssetName
     global battleAssetID
     global battle_alreadyText
+    global CNB_Total
  
 
 
@@ -934,7 +935,8 @@ def on_message(ws, message):
                         remainPRS = float(remainCNB_PRS["PRS"])
                         paidCNB = float(asset_amount)
 
-                        toSendPRS = bancor_incnb_outprs(paidCNB, remainPRS, CW_PRS_CNB)* 0.999
+                        toSendPRS = bancor_incnb_outprs(paidCNB, remainPRS, CW_PRS_CNB)* 0.99
+                        CNB_Total = CNB_Total - paidCNB
                         if toSendPRS < remainPRS:
                             print("remainCNB " + remainCNB_PRS["CNB"])
                             print("remainPRS " + remainCNB_PRS["PRS"])
@@ -948,11 +950,10 @@ def on_message(ws, message):
                                 sendUserGameEntrance(ws, myConfig, data['conversation_id'], userid, str(100 * float(PER_CNB)).encode('utf-8') + u"CNB兑换".encode('utf-8') + u"PRS".encode('utf-8'),mixin_asset_list.CNB_ASSET_ID,  float(PER_CNB) * 100)
 
                                 return
-                        else:
-                            transferTo(mixin_api_robot, myConfig, userid, realAssetObj["asset_id"] ,asset_amount,"rollback")
-                            sendUserText(ws, data['conversation_id'], userid, u"库存不足，请提醒老板补货".encode("utf-8"))
-                            sendUserText(ws, admin_conversation_id, mixin_config.admin_uuid, u"老板，CNB库存不足".encode("utf-8"))
-                            return
+                        transferTo(mixin_api_robot, myConfig, userid, realAssetObj["asset_id"] ,asset_amount,"rollback")
+                        sendUserText(ws, data['conversation_id'], userid, u"库存不足，请提醒老板补货".encode("utf-8"))
+                        sendUserText(ws, admin_conversation_id, mixin_config.admin_uuid, u"老板，CNB库存不足".encode("utf-8"))
+                        return
             if realAssetObj["asset_id"] == mixin_asset_list.PRS_ASSET_ID:
                 if float(asset_amount) < 0:
                     return
@@ -962,7 +963,8 @@ def on_message(ws, message):
                     remainPRS = float(remainCNB_PRS["PRS"])
                     paidPRS = float(asset_amount)
                     remainPRSBeforePay = remainPRS - paidPRS
-                    toSendCNB = bancor_inprs_outcnb(paidPRS, remainPRSBeforePay,CW_PRS_CNB) * 0.999
+                    toSendCNB = bancor_inprs_outcnb(paidPRS, remainPRSBeforePay,CW_PRS_CNB) * 0.99
+                    CNB_Total = CNB_Total + toSendCNB
                     if toSendCNB < remainCNB:
                         print("remainCNB " + remainCNB_PRS["CNB"])
                         print("remainPRS " + remainCNB_PRS["PRS"])
@@ -975,13 +977,10 @@ def on_message(ws, message):
                             sendUserGameEntrance(ws, myConfig, data['conversation_id'], userid, str(100 * float(PER_PRS)).encode('utf-8') + u"PRS兑换".encode('utf-8') + u"吹牛币".encode('utf-8'),mixin_asset_list.PRS_ASSET_ID,  float(PER_PRS) * 100)
 
 
-                        return
-
-                if float(asset_amount) > 1001 or float(asset_amount) < 999:
-                    transferTo(mixin_api_robot, myConfig, userid, realAssetObj["asset_id"],asset_amount,"rollback")
-                    sendUserText(ws, data['conversation_id'], userid, u"库存不足，请提醒老板补货".encode("utf-8"))
-                    sendUserText(ws, admin_conversation_id, mixin_config.admin_uuid, u"老板，CNB库存不足".encode("utf-8"))
-                    return
+                            return
+                transferTo(mixin_api_robot, myConfig, userid, realAssetObj["asset_id"],asset_amount,"rollback")
+                sendUserText(ws, data['conversation_id'], userid, u"库存不足，请提醒老板补货".encode("utf-8"))
+                sendUserText(ws, admin_conversation_id, mixin_config.admin_uuid, u"老板，CNB库存不足".encode("utf-8"))
                 return
             if realAssetObj["asset_id"] == mixin_asset_list.EOS_ASSET_ID:
                 if float(asset_amount) > 0:
