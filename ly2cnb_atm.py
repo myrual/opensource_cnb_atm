@@ -167,7 +167,7 @@ def transferTo(robot, config, to_user_id, to_asset_id,to_asset_amount,memo):
         print("to :" + to_user_id + " with asset:" + to_asset_id + " amount:" + str(to_asset_amount))
         print(result_obj)
 	if error_code == 20119:
-            transferTo(robot, config, to_user_id, to_asset_id,to_asset_amount,memo)
+            return transferTo(robot, config, to_user_id, to_asset_id,to_asset_amount,memo)
         return False
     else:
         return True
@@ -1043,6 +1043,7 @@ def on_message(ws, message):
 
             if realStickerObj['album_id'] == "eb002790-ef9b-467d-93c6-6a1d63fa2bee":
                 if realStickerObj['name'] == 'productive':
+                    return
                     outExchange(ws, myConfig, ConversationId, data['user_id'])
                     return
                 if realStickerObj['name'] == 'cooling_off':
@@ -1102,6 +1103,8 @@ def on_message(ws, message):
                 return
 
             if 'buy' == realData.lower():
+                sendUserText(ws, ConversationId, data['user_id'], "atm机老板因为程序有bug破产了，不玩了不玩了，没钱了")
+                return
                 outExchange(ws, myConfig, ConversationId, data['user_id'])
                 return
             if 'play' == realData.lower():
@@ -1123,8 +1126,6 @@ def on_message(ws, message):
                 sendUserText(ws, ConversationId, data['user_id'], str(sorted(latestSellers.values())) + " seller")
 
             outputIntroduction(ws, ConversationId, data['user_id'])
-            outExchange(ws, myConfig, ConversationId, data['user_id'])
-
             if data['user_id'] == mixin_config.admin_uuid:
                 if 'battle' in realData:
                     sendUserText(ws, ConversationId, data['user_id'],  "bprs,bcnb, bcandy change battle")
