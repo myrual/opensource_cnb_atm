@@ -930,7 +930,7 @@ def on_message(ws, message):
                         welcomeToMacao(ws, mixin_config, data['conversation_id'], data['user_id'])
                         recordLatestPlayer(data['user_id'], data['conversation_id'])
                         return
-                    if asset_amount == PER_CNB or asset_amount == str(10 * int(PER_CNB)) or asset_amount == str(100 * int(PER_CNB)):
+                    if asset_amount == PER_CNB or asset_amount == str(10 * int(PER_CNB)):
                         remainCNB_PRS = listCNBPRSAssets(mixin_api_robot, myConfig)
                         remainPRS = float(remainCNB_PRS["PRS"])
                         paidCNB = float(asset_amount)
@@ -947,7 +947,6 @@ def on_message(ws, message):
                                 totalCNBBuyBack = totalCNBBuyBack + 1
                                 recordCNBSeller(userid)
                                 sendUserGameEntrance(ws, myConfig, data['conversation_id'], userid, str(10 * float(PER_CNB)).encode('utf-8') + u"CNB兑换".encode('utf-8') + u"PRS".encode('utf-8'),mixin_asset_list.CNB_ASSET_ID,  float(PER_CNB) * 10)
-                                sendUserGameEntrance(ws, myConfig, data['conversation_id'], userid, str(100 * float(PER_CNB)).encode('utf-8') + u"CNB兑换".encode('utf-8') + u"PRS".encode('utf-8'),mixin_asset_list.CNB_ASSET_ID,  float(PER_CNB) * 100)
 
                                 return
                         transferTo(mixin_api_robot, myConfig, userid, realAssetObj["asset_id"] ,asset_amount,"rollback")
@@ -957,7 +956,10 @@ def on_message(ws, message):
             if realAssetObj["asset_id"] == mixin_asset_list.PRS_ASSET_ID:
                 if float(asset_amount) < 0:
                     return
-                if asset_amount == PER_PRS or asset_amount == str(10 * int(PER_PRS)) or asset_amount == str(100 * int(PER_PRS)):
+
+                if asset_amount == str(100 * int(PER_PRS)):
+                    return
+                if asset_amount == PER_PRS or asset_amount == str(10 * int(PER_PRS)) or asset_amount == str(10 * int(PER_PRS)):
                     remainCNB_PRS = listCNBPRSAssets(mixin_api_robot, myConfig)
                     remainCNB = float(remainCNB_PRS["CNB"])
                     remainPRS = float(remainCNB_PRS["PRS"])
@@ -974,7 +976,6 @@ def on_message(ws, message):
                         if transferTo(mixin_api_robot, myConfig, userid, mixin_asset_list.CNB_ASSET_ID,str(toSendCNB),"rich"):
                             recordCNBBuyer(userid)
                             sendUserGameEntrance(ws, myConfig, data['conversation_id'], userid, str(10 * float(PER_PRS)).encode('utf-8') + u"PRS兑换".encode('utf-8') + u"吹牛币".encode('utf-8'),mixin_asset_list.PRS_ASSET_ID,  float(PER_PRS) * 10)
-                            sendUserGameEntrance(ws, myConfig, data['conversation_id'], userid, str(100 * float(PER_PRS)).encode('utf-8') + u"PRS兑换".encode('utf-8') + u"吹牛币".encode('utf-8'),mixin_asset_list.PRS_ASSET_ID,  float(PER_PRS) * 100)
 
 
                             return
@@ -1082,9 +1083,9 @@ def on_message(ws, message):
 
             if 'gamedeposit' == realData:
 
-                sendUserPayAppButton(ws, myConfig, ConversationId, data['user_id'], u"deposit CNB".encode('utf-8'),mixin_asset_list.CNB_ASSET_ID,  123456789012, "#ff0033")
+                sendUserPayAppButton(ws, myConfig, ConversationId, data['user_id'], u"deposit CNB".encode('utf-8'),mixin_asset_list.CNB_ASSET_ID,  1234567890, "#ff0033")
                 sendUserPayAppButton(ws, myConfig, ConversationId, data['user_id'], u"deposit CANDY".encode('utf-8'),mixin_asset_list.CANDY_ASSET_ID,  payAmount * 100, "#20b2aa")
-                sendUserPayAppButton(ws, myConfig, ConversationId, data['user_id'], u"deposit prs".encode('utf-8'),mixin_asset_list.PRS_ASSET_ID,  1000, "#20b2aa")
+                sendUserPayAppButton(ws, myConfig, ConversationId, data['user_id'], u"deposit prs".encode('utf-8'),mixin_asset_list.PRS_ASSET_ID,  100, "#20b2aa")
 
                 return
             if '?' == realData or u'？'.encode('utf-8') == realData or 'help' == realData or 'Help' == realData or u'帮助'.encode('utf-8') == realData:
@@ -1103,8 +1104,6 @@ def on_message(ws, message):
                 return
 
             if 'buy' == realData.lower():
-                sendUserText(ws, ConversationId, data['user_id'], "atm机老板因为程序有bug破产了，不玩了不玩了，没钱了")
-                return
                 outExchange(ws, myConfig, ConversationId, data['user_id'])
                 return
             if 'play' == realData.lower():
@@ -1116,6 +1115,10 @@ def on_message(ws, message):
             if 'score' == realData.lower():
                 sendUserText(ws, ConversationId, data['user_id'],  myScoreText(data['user_id']))
                 return
+            if 'myid' == realData.lower():
+                sendUserText(ws, ConversationId, data['user_id'],  data['user_id'])
+                return
+
             if 'cs' == realData.lower():
                 outputMultiBattle(ws, myConfig, ConversationId, data['user_id'], battleAssetID, "", battleAmount)
                 return
