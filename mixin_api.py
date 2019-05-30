@@ -16,6 +16,21 @@ import ssl
 
 
 
+def read_user_info(robot, config, user_id):
+    encoded = robot.genGETJwtToken_extConfig('/users/' + user_id, "", config)
+    r = requests.get('https://api.mixin.one/users/' + user_id, json = "", headers = {"Authorization":"Bearer " + encoded})
+    result_obj = r.json()
+    if 'error' in result_obj:
+        error_body = result_obj['error']
+        error_code = error_body['code']
+        if error_code == 20119:
+            print("to :" + to_user_id + " with asset:" + to_asset_id + " amount:" + to_asset_amount)
+            print(result_obj)
+        return False
+    else:
+        return result_obj
+
+
 def transferTo(robot, config, to_user_id, to_asset_id,to_asset_amount,memo):
     encrypted_pin = robot.genEncrypedPin_extConfig(config)
     body = {'asset_id': to_asset_id, 'counter_user_id':to_user_id, 'amount':str(to_asset_amount), 'pin':encrypted_pin, 'trace_id':str(uuid.uuid1()), 'memo':memo}

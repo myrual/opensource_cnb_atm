@@ -313,7 +313,10 @@ def mostLeftNumberGreaterThan6(toCompareString):
     return False
 def userNameInDataBase(user_id):
     hashOfUserID = hashlib.sha256(user_id).hexdigest()
-    return session.query(Person).filter_by(userid =hashOfUserID).first()
+    result = session.query(Person).filter_by(userid =hashOfUserID).first()
+    if result == None:
+        print(mixin_api.read_user_info(user_id))
+    return result
 
 def addOneGroup(in_conversion_id):
     toAddGroup = session.query(GroupIncludeMe).filter_by(conversation_idstring = in_conversion_id).first()
